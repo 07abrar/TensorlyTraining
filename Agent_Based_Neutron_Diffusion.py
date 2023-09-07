@@ -14,7 +14,7 @@ import time
 
 start = time.time()
 
-history = 500 #specify the number of particles
+history = 5000 #specify the number of particles
 radius = 5
 r = np.full((history, 2), None, dtype=object)
 
@@ -90,6 +90,7 @@ for i in range(1, steps):
     init_record = record
 
 end = time.time()
+print('record.shape: ', record.shape)
 print(f'duration = {end-start}')
 
 # Create a figure and axis for the animation
@@ -132,5 +133,3 @@ ani.save('particle_animation_single.gif', writer=writer)
 
 # Display the animation
 plt.show()
-
-record.shape

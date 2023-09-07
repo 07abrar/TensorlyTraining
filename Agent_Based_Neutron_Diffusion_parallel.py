@@ -90,16 +90,15 @@ fr = 1
 fps = 20
 speed = 1
 if __name__ == '__main__':
-    histories = [100, 100, 100, 100, 100]
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    histories = [500, 500, 500, 500, 500, 500, 500, 500, 500, 500]
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         results = list(executor.map(update_particle, histories))
 
-results[0].shape
+list_of_records = []
+list_of_records.extend(results)
 
-results[1].shape
-
-record = np.concatenate((results[0], results[1]), axis=1)
-record.shape
+record = np.concatenate(list_of_records, axis=1)
+print('record.shape :', record.shape)
 
 end = time.time()
 print(f'duration = {end-start}')
