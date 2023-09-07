@@ -90,7 +90,7 @@ fr = 1
 fps = 20
 speed = 1
 if __name__ == '__main__':
-    histories = [1000, 1000]
+    histories = [100, 100, 100, 100, 100]
     with concurrent.futures.ThreadPoolExecutor() as executor:
         results = list(executor.map(update_particle, histories))
 
@@ -140,7 +140,7 @@ Writer = animation.writers['pillow']
 writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
 
 # Save the animation as a GIF
-ani.save('particle_animation.gif', writer=writer)
+ani.save('particle_animation_parallel.gif', writer=writer)
 
 # Display the animation
 plt.show()
