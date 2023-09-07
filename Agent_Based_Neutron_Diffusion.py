@@ -14,7 +14,7 @@ import time
 
 start = time.time()
 
-history = 2000 #specify the number of particles
+history = 500 #specify the number of particles
 radius = 5
 r = np.full((history, 2), None, dtype=object)
 
@@ -128,7 +128,7 @@ Writer = animation.writers['pillow']
 writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
 
 # Save the animation as a GIF
-ani.save('particle_animation.gif', writer=writer)
+ani.save('particle_animation_single.gif', writer=writer)
 
 # Display the animation
 plt.show()
