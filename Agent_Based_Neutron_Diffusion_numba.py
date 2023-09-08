@@ -107,6 +107,7 @@ def update_particle(steps, history, r, v, fuel, fr, record, init_record):
 record = update_particle(steps, history, r, v, fuel, fr, record, init_record)
 
 end = time.time()
+print('record.shape: ', record.shape)
 print(f'duration = {end-start}')
 
 # Create a figure and axis for the animation
