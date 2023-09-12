@@ -134,3 +134,8 @@ end = time.time()
 print(f'record_host.shape = {record_host.shape}')
 print(f'duration = {end-start}')
 
+part = 0
+for i in range(dummy_history):
+    if record_host[3999,i,0] != 11000 and record_host[3999,i,0] != -11000:
+        part +=1
+print('Particles =', part)
