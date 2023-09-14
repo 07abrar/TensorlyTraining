@@ -32,7 +32,7 @@ def initialize_particles(rng_states, r, history):
         r[thread_id, 0] = position * math.sin(teta)
         r[thread_id, 1] = position * math.cos(teta)
 
-threads_per_block = 300
+threads_per_block = 400
 blocks = (dummy_history+threads_per_block-1) // threads_per_block
 rng_states = create_xoroshiro128p_states(threads_per_block * blocks, seed=1)
 
