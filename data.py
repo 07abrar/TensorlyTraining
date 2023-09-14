@@ -95,7 +95,7 @@ fr = 1
 fps = 20
 speed = 1
 if __name__ == '__main__':
-    histories = [5000 for _ in range(1)]
+    histories = [167 for _ in range(29)]+[157]
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = list(executor.map(update_particle, histories))
 
