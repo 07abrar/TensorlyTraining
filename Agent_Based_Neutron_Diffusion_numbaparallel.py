@@ -18,9 +18,17 @@ start = time.time()
 
 @jit(nopython=True)
 def update_particle(history):
+    #define some variable
+    radius = 5 #cylinder radius
+    fr = 1 #fuel radius
+    speed = 1
+    fps = 20
+    dt = 1/fps
+    final_time = 200
+    steps = int(final_time/dt) #simulation steps
 
+    #initialize particles location
     r = np.full((history, 2), np.nan)
-
     def initialize_particles(r, history):
         for i in range(history):
             teta = np.random.uniform(0, 2*np.pi)
@@ -29,26 +37,20 @@ def update_particle(history):
             r[i, 1] = position * np.sin(teta)
     initialize_particles(r, history)
 
-    fps = 20
-    dt = 1/fps
-    final_time = 200
-    steps = int(final_time/dt)
-
+    #initialize record data
     record = np.full((1, history, 2), np.nan)
     record[0,:,:] = r[:,:]
     init_record = record
 
+    #initialize fuel
     fuel = np.full((1, 2), np.nan)
-    fr = 1
-
     def initialize_fuel(fuel):
         fuel[0, 0] = 0
         fuel[0, 1] = 0
     initialize_fuel(fuel)
 
+    #initialize particle speed
     v = np.full((history, 2), np.nan)
-    speed = 1
-
     def initialize_speed(v, history):
         for i in range(history):
             teta = np.random.uniform(0, 2*np.pi)
@@ -56,6 +58,7 @@ def update_particle(history):
             v[i, 1] = speed * np.sin(teta)
     initialize_speed(v, history)
 
+    #update particle position and speed and record data
     for i in range(1, steps):
         for j in range(history):
             if r[j, 0] == 11000:
@@ -88,30 +91,29 @@ def update_particle(history):
                 r[j, :] = r[j, :] + v[j, :] * dt
         record[i,:,:] = r[:,:]
         init_record = record
-    return record
+    return record #done
 
-radius = 5
-fr = 1
-fps = 20
-speed = 1
 if __name__ == '__main__':
-    histories = [500, 500, 500, 500, 500, 500, 500, 500, 500, 500]
+    histories = [100, 100]
     with concurrent.futures.ProcessPoolExecutor() as executor:
         results = list(executor.map(update_particle, histories))
-
-list_of_records = []
-list_of_records.extend(results)
-
-record = np.concatenate(list_of_records, axis=1)
-print('record.shape :', record.shape)
 
 end = time.time()
 print(f'duration = {end-start}')
 
+record = np.concatenate((results[0], results[1]), axis=1)
+record.shape
+
 # Create a figure and axis for the animation
+radius = 5
+fr = 1
+fps = 20
+speed = 1
+
 fig, ax = plt.subplots()
 ax.set_xlim(-radius, radius)
 ax.set_ylim(-radius, radius)
+ax.set_aspect('equal')
 
 # Create a scatter plot for the particles with a specified size (e.g., ms=2)
 particles, = ax.plot([], [], 'bo', ms=0.1)
@@ -140,11 +142,10 @@ def update(frame):
 ani = animation.FuncAnimation(fig, update, frames=len(record), init_func=init, interval=50, blit=True)
 
 # Set up the animation writer (for saving as a GIF)
-Writer = animation.writers['pillow']
-writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1800)
-
+Writer = animation.writers['ffmpeg']
+writer = Writer(fps=fps, metadata=dict(artist='Me'), bitrate=1500)
 # Save the animation as a GIF
-ani.save('particle_animation.gif', writer=writer)
+ani.save('particle_animation.mp4', writer=writer)
 
 # Display the animation
 plt.show()
