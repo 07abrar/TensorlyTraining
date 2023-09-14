@@ -18,7 +18,7 @@ import math
 start = time.time()
 
 history = 5000 #specify the number of particles at the beginning
-dummy_history = 50000
+dummy_history = 35000
 radius = 5
 r_host = np.float64(np.full((dummy_history, 2), -11000))
 r = cuda.to_device(r_host)
@@ -63,18 +63,18 @@ initialize_fuel(fuel_host)
 fuel = cuda.to_device(fuel_host)
 
 speed = 1
-v_host = np.float64(np.full((dummy_history, 2), np.nan))
+v_host = np.float64(np.full((dummy_history, 2), 0))
 v = cuda.to_device(v_host)
 
 @cuda.jit
-def initialize_speed(rng_states, v, dummy_history):
+def initialize_speed(rng_states, v, history):
     thread_id = cuda.grid(1)
-    if thread_id < dummy_history:
+    if thread_id < history:
         teta = xoroshiro128p_uniform_float64(rng_states, thread_id)*2*np.pi
         v[thread_id, 0] = speed * math.cos(teta)
         v[thread_id, 1] = speed * math.sin(teta)
 
-initialize_speed[blocks, threads_per_block](rng_states, v, dummy_history)
+initialize_speed[blocks, threads_per_block](rng_states, v, history)
 
 @cuda.jit
 def update_particle1(i, dummy_history, r, v, fuel, fr, collision, record):
@@ -86,7 +86,7 @@ def update_particle1(i, dummy_history, r, v, fuel, fr, collision, record):
               fuel[0, 1] - fr <= r[thread_id, 1] <= fuel[0, 1] + fr and
               math.sqrt(r[thread_id, 0]**2 + r[thread_id, 1]**2) <= fr):
             r[thread_id,:] = 11000
-            #v[thread_id,:] = 0
+            v[thread_id,:] = 0
             collision[thread_id] = 1
         elif math.sqrt(r[thread_id, 0]**2 + r[thread_id, 1]**2) < radius:
             for k in range(r.shape[1]):
@@ -104,16 +104,19 @@ def update_particle1(i, dummy_history, r, v, fuel, fr, collision, record):
             record[i,thread_id,j] = r[thread_id,j]
 
 @jit(nopython=True)
-def update_particle2(r_host):
+def update_particle2(r_host, v_host):
     born_part = 2
     for i in range(dummy_history):
         if born_part == 0:
             break
-        if r_host[i,0] == 11000. or r_host[i,0] == -11000.:
+        if v_host[i,0] == 0.:
             teta = np.random.uniform(0, 2*np.pi)
             position = np.random.uniform(0, radius)
             r_host[i, 0] = position * math.sin(teta)
             r_host[i, 1] = position * math.cos(teta)
+            teta = np.random.uniform(0, 2*np.pi)
+            v_host[i, 0] = speed * np.cos(teta)
+            v_host[i, 1] = speed * np.sin(teta)
             born_part = born_part-1
         else: continue
 
@@ -123,10 +126,12 @@ for i in range(1,steps):
     update_particle1[blocks, threads_per_block](i, dummy_history, r, v, fuel, fr, collision, record)
     collision_host = collision.copy_to_host()
     r_host = r.copy_to_host()
+    v_host = v.copy_to_host()
     for k in range(dummy_history):
         if collision_host[k] == 1:
-            update_particle2(r_host)
+            update_particle2(r_host, v_host)
     r = cuda.to_device(r_host)
+    v = cuda.to_device(v_host)
 
 record_host = record.copy_to_host()
 
